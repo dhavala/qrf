@@ -3,15 +3,14 @@ require(Hmisc)
 require(hash)
 
 # this function will be internal, to calculate check loss
-ncmp_evalCheckLoss <- function(err,probs=0.5)
+evalCheckLoss <- function(err,probs=0.5)
 {
-  # given x, calculate its the check loss
+  # given err, calculate its the check loss
   return( mean( err*(probs-(err<0)) ) )
 }
+#evalCheckLoss <- cmpfun(ncmp_evalCheckLoss)
 
-evalCheckLoss <- cmpfun(ncmp_evalCheckLoss)
-
-ncp_importance.qrf <- function(object,xold,xnew=NULL,nPerm=1,probs=probs)
+importance.qrf <- function(object,xold,xnew=NULL,nPerm=1,probs=probs)
 {
   
   if(class(object)!='qrf') stop('supplied object is not a quantile randomForest object')
@@ -26,7 +25,7 @@ ncp_importance.qrf <- function(object,xold,xnew=NULL,nPerm=1,probs=probs)
   imp.mn <- matrix(0.0,p,q)
   imp.sd <- matrix(0.0,p,q)
   
-  nodes.orig <- nodes.perm <- attr(predict(object$rfobject,xold,predict.all=TRUE,nodes=TRUE),'nodes')
+  nodes.orig <- attr(predict(object$rfobject,xold,predict.all=TRUE,nodes=TRUE),'nodes')
   inbag <- object$rfobject$inbag
   for (pp in seq(1,p)){
     
@@ -88,7 +87,7 @@ ncp_importance.qrf <- function(object,xold,xnew=NULL,nPerm=1,probs=probs)
   out<-list(imp.mn=imp.mn,imp.sd=imp.sd)
 }
 
-ncp_predict.qrf <- function(object,xold=x,xnew=NULL,probs=c(0.1,0.5,0.9))
+predict.qrf <- function(object,xold=x,xnew=NULL,probs=c(0.1,0.5,0.9))
 {
   if(!is.null(object$predicted) & is.null(xnew)){
     return(object$predicted)
@@ -146,21 +145,21 @@ ncp_predict.qrf <- function(object,xold=x,xnew=NULL,probs=c(0.1,0.5,0.9))
   }
   yhat <- apply(wt,2,getPred,probs=probs,y=y)
   yhat <- t(yhat)
-  colnames(yhat) <- paste(probs)
+  #colnames(yhat) <- paste(probs)
   # return an m x q matrix where each column is the q-th quantile prediction
   out <- list(predicted=yhat,wt=wt)
   return(out)
 
 }
 
-require(compiler)
-enableJIT(3)
-predict.qrf <- cmpfun(ncp_predict.qrf)
-importance.qrf <- cmpfun(ncp_importance.qrf)
+#require(compiler)
+#enableJIT(3)
+#predict.qrf <- cmpfun(ncp_predict.qrf)
+#importance.qrf <- cmpfun(ncp_importance.qrf)
 
 
 # tweaked quantregForest interface
-ncp_qrf.fit <-  function(x,y, probs=c(0.1,0.5,0.9),mtry= ceiling(ncol(x)/3),nodesize= 10,ntree= 1000,importance=FALSE,nPerm=1){
+qrf.fit <-  function(x,y, probs=c(0.1,0.5,0.9),mtry= ceiling(ncol(x)/3),nodesize= 10,ntree= 1000,importance=FALSE,nPerm=1){
   
   ## Some checks
   
@@ -233,5 +232,5 @@ ncp_qrf.fit <-  function(x,y, probs=c(0.1,0.5,0.9),mtry= ceiling(ncol(x)/3),node
   return(qrf)
 }
 
-qrf.fit <- cmpfun(ncp_qrf.fit)
+#qrf.fit <- cmpfun(ncp_qrf.fit)
 

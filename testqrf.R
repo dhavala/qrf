@@ -3,6 +3,8 @@ setwd('F:/work/qrf')
 require(randomForest)
 require(Hmisc)
 require(hash)
+#require(compiler)
+require(quantregForest)
 
 set.seed(123)
 simu=0
@@ -37,7 +39,6 @@ ntree <- 500
 nodesize <- 3
 nPerm <- 1
 
-source('F:/work/qrf/qrf.R')
 qrf1 <- qrf.fit(x,y=y, probs=c(0.1,0.5,0.9),ntree=ntree,importance=FALSE,nPerm=1)
 qrf2 <- randomForest(x,y=y)
 qrf3 <- quantregForest(x,y=y)
@@ -83,5 +84,24 @@ print(qrf1a$importance)
 print(qrf2a$importance)
 print(qrf1a$importanceSD)
 print(qrf2a$importanceSD)
+
+
+# compare with linear regression estimates
+
+lm.obj <- lm(y~x)
+qrfX <- qrf.fit(x,y=y, probs=c(0.1,0.5,0.9),ntree=ntree,importance=FALSE,nPerm=1)
+yhat <- qrfX$predicted
+estBeta <-rep(NA,p)
+for (ii in seq(1,p))
+{
+  x1 <-x;x1[,ii]=x[,ii]+1
+  qrfX1 <-  qrf.fit(x1,y=y, probs=c(0.1,0.5,0.9),ntree=ntree,importance=FALSE,nPerm=1)
+  yhat1 <- qrfX1$predicted
+  lm1.obj <- lm(yhat1~yhat)
+  estBeta[ii] <- coefficients(lm1.obj)[1]
+}
+
+qrfX <- qrf.fit(x,y=y, probs=c(0.5),ntree=ntree,importance=FALSE,nPerm=1)
+
 
 
